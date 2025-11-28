@@ -116,6 +116,7 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'circuitbot123';
 app.get('/', (req, res) => {
   const isOnline = client.isReady();
   
+  res.setHeader('Content-Type', 'text/html');
   res.send(`
 <!DOCTYPE html>
 <html>
