@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/interactions",
+      "dest": "api/interactions.js"
+    }
+  ],
+  "env": {
+    "DISCORD_PUBLIC_KEY": "@discord-public-key",
+    "DISCORD_APPLICATION_ID": "@discord-application-id",
+    "DISCORD_CLIENT_ID": "@discord-client-id",
+    "DISCORD_CLIENT_SECRET": "@discord-client-secret"
+  }
+}
+

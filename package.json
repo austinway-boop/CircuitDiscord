@@ -1,0 +1,21 @@
+{
+  "name": "circuit-discord-bot",
+  "version": "1.0.0",
+  "description": "Circuit Discord Bot running on Vercel",
+  "main": "api/interactions.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "vercel"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "discord-interactions": "^3.4.0"
+  }
+}
+
