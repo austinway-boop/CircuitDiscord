@@ -1,76 +1,28 @@
-/**
- * Circuit Bot Dashboard
- * View bot status, logs, and control the bot
- */
+import express from 'express';
+import { 
+  isBotEnabled, 
+  setBotEnabled, 
+  interactionLogs, 
+  errorLogs, 
+  clearLogs,
+  getClient 
+} from './index.js';
 
-// Simple in-memory storage for logs and status
-let botEnabled = true;
-let interactionLogs = [];
-let errorLogs = [];
-const MAX_LOGS = 50;
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Function to add interaction log
-function logInteraction(type, command, user) {
-  interactionLogs.unshift({
-    timestamp: new Date().toISOString(),
-    type,
-    command,
-    user,
-    status: 'success'
-  });
-  if (interactionLogs.length > MAX_LOGS) interactionLogs.pop();
-}
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'circuitbot123';
 
-// Function to add error log
-function logError(error, details) {
-  errorLogs.unshift({
-    timestamp: new Date().toISOString(),
-    error: error.toString(),
-    details: details || 'No additional details'
-  });
-  if (errorLogs.length > MAX_LOGS) errorLogs.pop();
-}
+export function startDashboard() {
+  const port = process.env.DASHBOARD_PORT || 3000;
 
-// Export functions for use in interactions.js
-global.botEnabled = () => botEnabled;
-global.setBotEnabled = (value) => { botEnabled = value; };
-global.logInteraction = logInteraction;
-global.logError = logError;
-global.getInteractionLogs = () => interactionLogs;
-global.getErrorLogs = () => errorLogs;
+  // Main dashboard page
+  app.get('/', (req, res) => {
+    const client = getClient();
+    const isOnline = client && client.isReady();
+    const enabled = isBotEnabled();
 
-export default function handler(req, res) {
-  // Handle POST requests for toggling bot
-  if (req.method === 'POST') {
-    const { action, password } = req.body || {};
-    
-    // Simple password protection (change this!)
-    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'circuitbot123';
-    
-    if (password !== ADMIN_PASSWORD) {
-      return res.status(401).json({ error: 'Invalid password' });
-    }
-    
-    if (action === 'toggle') {
-      botEnabled = !botEnabled;
-      return res.json({ 
-        success: true, 
-        enabled: botEnabled,
-        message: `Bot is now ${botEnabled ? 'ENABLED' : 'DISABLED'}`
-      });
-    }
-    
-    if (action === 'clear_logs') {
-      interactionLogs = [];
-      errorLogs = [];
-      return res.json({ success: true, message: 'Logs cleared' });
-    }
-    
-    return res.status(400).json({ error: 'Invalid action' });
-  }
-
-  // Handle GET requests - show dashboard
-  if (req.method === 'GET') {
     const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -114,11 +66,6 @@ export default function handler(req, res) {
       margin-bottom: 10px;
     }
     
-    .header p {
-      font-size: 1.2em;
-      opacity: 0.9;
-    }
-    
     .status-card {
       background: white;
       border-radius: 15px;
@@ -154,6 +101,32 @@ export default function handler(req, res) {
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.5; }
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    
+    .stat-box {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      opacity: 0.9;
+      font-size: 0.9em;
     }
     
     .controls {
@@ -199,43 +172,24 @@ export default function handler(req, res) {
       color: white;
     }
     
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin: 20px 0;
-    }
-    
-    .stat-box {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 20px;
-      border-radius: 10px;
-      text-align: center;
-    }
-    
-    .stat-value {
-      font-size: 2em;
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-    
-    .stat-label {
-      opacity: 0.9;
-      font-size: 0.9em;
-    }
-    
     .logs-section {
       background: white;
       border-radius: 15px;
       padding: 30px;
       margin-bottom: 20px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      max-height: 500px;
+      overflow-y: auto;
     }
     
     .logs-section h2 {
       margin-bottom: 20px;
       color: #667eea;
+      position: sticky;
+      top: 0;
+      background: white;
+      padding: 10px 0;
+      z-index: 10;
     }
     
     .log-entry {
@@ -265,11 +219,6 @@ export default function handler(req, res) {
       border-radius: 6px;
       font-size: 14px;
       width: 200px;
-    }
-    
-    .password-input:focus {
-      outline: none;
-      border-color: #667eea;
     }
     
     .alert {
@@ -304,10 +253,6 @@ export default function handler(req, res) {
       padding: 15px;
       margin: 15px 0;
     }
-    
-    .info-box strong {
-      color: #1e40af;
-    }
   </style>
 </head>
 <body>
@@ -319,31 +264,35 @@ export default function handler(req, res) {
     
     <div class="status-card">
       <div class="status-indicator">
-        <div class="status-dot ${botEnabled ? 'status-online' : 'status-offline'}"></div>
-        <span>Bot Status: ${botEnabled ? 'ENABLED ✅' : 'DISABLED ❌'}</span>
+        <div class="status-dot ${isOnline ? 'status-online' : 'status-offline'}"></div>
+        <span>Discord: ${isOnline ? 'CONNECTED ✅' : 'DISCONNECTED ❌'}</span>
+      </div>
+      
+      <div class="status-indicator">
+        <div class="status-dot ${enabled ? 'status-online' : 'status-offline'}"></div>
+        <span>Bot: ${enabled ? 'ENABLED ✅' : 'DISABLED ⏸️'}</span>
       </div>
       
       <div class="info-box">
-        <strong>ℹ️ Note:</strong> The bot will always show as "offline" in Discord because it's serverless. 
-        This is normal! The bot responds to commands even while showing offline status.
+        <strong>✅ This bot is ALWAYS ONLINE!</strong> It maintains a persistent connection to Discord and will show as "Online" with a green status.
       </div>
       
       <div class="stats-grid">
         <div class="stat-box">
           <div class="stat-value">${interactionLogs.length}</div>
-          <div class="stat-label">Total Interactions</div>
+          <div class="stat-label">Commands Used</div>
         </div>
         <div class="stat-box">
           <div class="stat-value">${errorLogs.length}</div>
           <div class="stat-label">Errors Logged</div>
         </div>
         <div class="stat-box">
-          <div class="stat-value">${botEnabled ? 'ACTIVE' : 'PAUSED'}</div>
-          <div class="stat-label">Current State</div>
+          <div class="stat-value">${isOnline ? client.guilds.cache.size : 0}</div>
+          <div class="stat-label">Servers</div>
         </div>
         <div class="stat-box">
-          <div class="stat-value">Vercel</div>
-          <div class="stat-label">Platform</div>
+          <div class="stat-value">${isOnline ? client.ws.ping : 0}ms</div>
+          <div class="stat-label">Latency</div>
         </div>
       </div>
       
@@ -355,10 +304,10 @@ export default function handler(req, res) {
           id="password" 
           class="password-input" 
           placeholder="Admin Password"
-          value="circuitbot123"
+          value=""
         >
-        <button class="btn ${botEnabled ? 'btn-danger' : 'btn-success'}" onclick="toggleBot()">
-          ${botEnabled ? '⏸️ Disable Bot' : '▶️ Enable Bot'}
+        <button class="btn ${enabled ? 'btn-danger' : 'btn-success'}" onclick="toggleBot()">
+          ${enabled ? '⏸️ Disable Bot' : '▶️ Enable Bot'}
         </button>
         <button class="btn btn-secondary" onclick="clearLogs()">
           🗑️ Clear Logs
@@ -370,29 +319,29 @@ export default function handler(req, res) {
     </div>
     
     <div class="logs-section">
-      <h2>📊 Recent Interactions</h2>
+      <h2>📊 Recent Interactions (Last ${interactionLogs.length})</h2>
       ${interactionLogs.length > 0 ? 
-        interactionLogs.map(log => `
+        interactionLogs.slice(0, 50).map(log => `
           <div class="log-entry">
             <div class="log-timestamp">${new Date(log.timestamp).toLocaleString()}</div>
-            <strong>${log.type}</strong> - Command: <code>/${log.command}</code> - User: ${log.user || 'Unknown'}
+            <strong>${log.type}</strong> - Command: <code>/${log.command}</code> - User: ${log.user}
           </div>
         `).join('') :
-        '<div class="empty-state">No interactions logged yet. Try using a command in Discord!</div>'
+        '<div class="empty-state">No interactions logged yet. Commands will appear here!</div>'
       }
     </div>
     
     <div class="logs-section">
-      <h2>⚠️ Error Logs</h2>
+      <h2>⚠️ Error Logs (Last ${errorLogs.length})</h2>
       ${errorLogs.length > 0 ?
-        errorLogs.map(log => `
+        errorLogs.slice(0, 50).map(log => `
           <div class="log-entry error">
             <div class="log-timestamp">${new Date(log.timestamp).toLocaleString()}</div>
             <strong>Error:</strong> ${log.error}<br>
             <strong>Details:</strong> ${log.details}
           </div>
         `).join('') :
-        '<div class="empty-state">✅ No errors logged. Everything is working smoothly!</div>'
+        '<div class="empty-state">✅ No errors! Everything is running smoothly.</div>'
       }
     </div>
   </div>
@@ -403,10 +352,10 @@ export default function handler(req, res) {
       const alertDiv = document.getElementById('alert');
       
       try {
-        const response = await fetch('/', {
+        const response = await fetch('/api/toggle', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'toggle', password })
+          body: JSON.stringify({ password })
         });
         
         const data = await response.json();
@@ -432,13 +381,13 @@ export default function handler(req, res) {
       const password = document.getElementById('password').value;
       const alertDiv = document.getElementById('alert');
       
-      if (!confirm('Are you sure you want to clear all logs?')) return;
+      if (!confirm('Clear all logs?')) return;
       
       try {
-        const response = await fetch('/', {
+        const response = await fetch('/api/clear-logs', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'clear_logs', password })
+          body: JSON.stringify({ password })
         });
         
         const data = await response.json();
@@ -460,16 +409,48 @@ export default function handler(req, res) {
       }
     }
     
-    // Auto-refresh every 30 seconds
-    setTimeout(() => location.reload(), 30000);
+    // Auto-refresh every 10 seconds
+    setTimeout(() => location.reload(), 10000);
   </script>
 </body>
 </html>
     `;
     
-    return res.status(200).send(html);
-  }
-  
-  return res.status(405).json({ error: 'Method not allowed' });
+    res.send(html);
+  });
+
+  // API endpoint to toggle bot
+  app.post('/api/toggle', (req, res) => {
+    const { password } = req.body;
+    
+    if (password !== ADMIN_PASSWORD) {
+      return res.status(401).json({ error: 'Invalid password' });
+    }
+    
+    const newState = !isBotEnabled();
+    setBotEnabled(newState);
+    
+    res.json({ 
+      success: true, 
+      enabled: newState,
+      message: `Bot is now ${newState ? 'ENABLED' : 'DISABLED'}`
+    });
+  });
+
+  // API endpoint to clear logs
+  app.post('/api/clear-logs', (req, res) => {
+    const { password } = req.body;
+    
+    if (password !== ADMIN_PASSWORD) {
+      return res.status(401).json({ error: 'Invalid password' });
+    }
+    
+    clearLogs();
+    res.json({ success: true, message: 'Logs cleared successfully' });
+  });
+
+  app.listen(port, () => {
+    console.log(`🌐 Dashboard running at http://localhost:${port}`);
+  });
 }
 

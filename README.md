@@ -1,21 +1,17 @@
-# Circuit Discord Bot
+# ⚡ Circuit Discord Bot
 
-A serverless Discord bot powered by Vercel that uses Discord's interaction endpoints.
+A fully-featured Discord bot that shows **ONLINE** with a web dashboard for monitoring and control!
 
-## 🚀 Features
+## 🌟 Features
 
-- Serverless architecture running on Vercel
-- Slash command support
-- Easy to deploy and maintain
-- No need for 24/7 server uptime
+- ✅ **Always Online** - Traditional bot that shows green status in Discord
+- 🎛️ **Web Dashboard** - Monitor and control your bot from a browser
+- 📊 **Real-time Logging** - Track all commands and errors
+- ⚡ **Fast Response** - Low latency, instant command execution
+- 🔐 **Admin Controls** - Enable/disable bot remotely
+- 📈 **Statistics** - View uptime, usage stats, and more
 
-## 📋 Prerequisites
-
-- Discord Developer Account
-- Vercel Account
-- Node.js installed locally (for testing)
-
-## 🛠️ Setup Instructions
+## 🚀 Quick Start
 
 ### 1. Install Dependencies
 
@@ -23,115 +19,257 @@ A serverless Discord bot powered by Vercel that uses Discord's interaction endpo
 npm install
 ```
 
-### 2. Get Your Bot Token
+### 2. Configure Bot
 
-1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
-2. Select your application (Application ID: 1444014145438486589)
-3. Go to the "Bot" section
-4. Copy your bot token
-5. Update `.env` file with your bot token
+Create a `.env` file:
 
-### 3. Deploy to Vercel
+```env
+DISCORD_BOT_TOKEN=your_bot_token_here
+DISCORD_APPLICATION_ID=1444014145438486589
+DASHBOARD_PORT=3000
+ADMIN_PASSWORD=circuitbot123
+```
 
-#### Option A: Using Vercel CLI
+**Get your bot token:**
+1. Go to https://discord.com/developers/applications/1444014145438486589/bot
+2. Click "Reset Token" or "Copy"
+3. Paste it in `.env` file
+
+### 3. Register Commands
 
 ```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Login to Vercel
-vercel login
-
-# Deploy
-vercel --prod
+npm run register
 ```
 
-#### Option B: Using Vercel Dashboard
-
-1. Go to [vercel.com](https://vercel.com)
-2. Import your GitHub repository
-3. Add environment variables in project settings:
-   - `DISCORD_PUBLIC_KEY`
-   - `DISCORD_APPLICATION_ID`
-   - `DISCORD_CLIENT_ID`
-   - `DISCORD_CLIENT_SECRET`
-4. Deploy!
-
-### 4. Configure Discord Interactions Endpoint
-
-1. After deploying, copy your Vercel URL (e.g., `https://your-project.vercel.app`)
-2. Go to [Discord Developer Portal](https://discord.com/developers/applications)
-3. Select your application
-4. Go to "General Information"
-5. Set the "Interactions Endpoint URL" to: `https://your-project.vercel.app/api/interactions`
-6. Click "Save Changes"
-
-Discord will verify your endpoint automatically.
-
-### 5. Register Slash Commands
+### 4. Start the Bot
 
 ```bash
-# Make sure DISCORD_BOT_TOKEN is set in your .env file
-node scripts/register-commands.js
+npm start
 ```
 
-### 6. Invite Bot to Your Server
+The bot will:
+- ✅ Connect to Discord (show as **ONLINE**)
+- ✅ Start web dashboard at `http://localhost:3000`
+- ✅ Be ready to receive commands!
 
-Use this URL format (replace APPLICATION_ID with yours):
+### 5. Invite Bot to Your Server
 
+Use this link:
 ```
-https://discord.com/api/oauth2/authorize?client_id=1444014145438486589&permissions=2048&scope=bot%20applications.commands
+https://discord.com/api/oauth2/authorize?client_id=1444014145438486589&permissions=8&scope=bot%20applications.commands
 ```
 
 ## 📝 Available Commands
 
-- `/ping` - Check if the bot is responding
-- `/hello` - Get a friendly greeting
-- `/info` - Get information about the bot
+| Command | Description |
+|---------|-------------|
+| `/ping` | Check bot latency and response time |
+| `/hello` | Get a friendly greeting |
+| `/info` | View detailed bot information |
+| `/help` | Display all available commands |
+| `/stats` | View bot statistics and uptime |
 
-## 🔧 Adding New Commands
+## 🎛️ Web Dashboard
 
-1. Add the command definition in `scripts/register-commands.js`
-2. Add the command handler in `api/interactions.js`
-3. Run the register script: `node scripts/register-commands.js`
+Access the dashboard at `http://localhost:3000` (or your server IP)
 
-## 🌐 Environment Variables
+**Features:**
+- 📊 Real-time statistics
+- 📝 Command logs
+- ⚠️ Error logs
+- ⏸️ Enable/Disable bot
+- 🗑️ Clear logs
+- 🔄 Auto-refresh
 
-| Variable | Description |
-|----------|-------------|
-| `DISCORD_PUBLIC_KEY` | Your application's public key |
-| `DISCORD_APPLICATION_ID` | Your application ID |
-| `DISCORD_CLIENT_ID` | Your client ID |
-| `DISCORD_CLIENT_SECRET` | Your client secret |
-| `DISCORD_BOT_TOKEN` | Your bot token (needed for registering commands) |
+**Default Password:** `circuitbot123` (change in `.env`)
 
-## 📚 Resources
+## 🖥️ Hosting Options
 
-- [Discord Developer Portal](https://discord.com/developers/applications)
-- [Discord Interactions Guide](https://discord.com/developers/docs/interactions/receiving-and-responding)
-- [Vercel Documentation](https://vercel.com/docs)
+### Option 1: Run Locally (Free)
+
+Just run `npm start` on your computer. Bot stays online as long as your computer is on.
+
+### Option 2: Railway (Recommended, Free Tier)
+
+1. Create account at [railway.app](https://railway.app)
+2. Click "New Project" → "Deploy from GitHub"
+3. Select your repository
+4. Add environment variables:
+   - `DISCORD_BOT_TOKEN`
+   - `DISCORD_APPLICATION_ID`
+   - `DASHBOARD_PORT=3000`
+   - `ADMIN_PASSWORD`
+5. Deploy!
+
+Railway will:
+- Keep your bot online 24/7
+- Provide a public URL for dashboard
+- Auto-deploy on git push
+
+### Option 3: VPS (DigitalOcean, Linode, etc.)
+
+```bash
+# On your server
+git clone https://github.com/austinway-boop/CircuitDiscord.git
+cd CircuitDiscord
+npm install
+npm run register
+npm start
+```
+
+Use PM2 to keep it running:
+```bash
+npm install -g pm2
+pm2 start src/index.js --name circuit-bot
+pm2 save
+pm2 startup
+```
+
+### Option 4: Heroku
+
+1. Create a `Procfile`:
+```
+worker: node src/index.js
+```
+
+2. Deploy:
+```bash
+heroku create your-bot-name
+git push heroku main
+heroku ps:scale worker=1
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `DISCORD_BOT_TOKEN` | ✅ Yes | - | Your Discord bot token |
+| `DISCORD_APPLICATION_ID` | ✅ Yes | - | Your application ID |
+| `DASHBOARD_PORT` | ❌ No | 3000 | Web dashboard port |
+| `ADMIN_PASSWORD` | ❌ No | circuitbot123 | Dashboard admin password |
+
+### Bot Intents
+
+The bot uses these intents:
+- `Guilds` - Access server information
+- `GuildMessages` - Read messages (for future features)
+- `MessageContent` - Access message content
+
+## 📊 Dashboard API
+
+### Toggle Bot Status
+```bash
+POST /api/toggle
+Content-Type: application/json
+
+{
+  "password": "your_password"
+}
+```
+
+### Clear Logs
+```bash
+POST /api/clear-logs
+Content-Type: application/json
+
+{
+  "password": "your_password"
+}
+```
 
 ## 🐛 Troubleshooting
 
-### Bot not responding to commands
-- Make sure the interactions endpoint URL is correctly set in Discord Developer Portal
-- Check Vercel function logs for errors
-- Verify environment variables are set correctly
+### Bot shows as offline
+- Check that `DISCORD_BOT_TOKEN` is correct
+- Make sure the bot is running (`npm start`)
+- Check console for error messages
 
-### Commands not showing up
-- Run the register-commands script again
-- Wait a few minutes for Discord to propagate the commands
-- Check if your bot token is valid
+### Commands not appearing
+- Run `npm run register` to register commands
+- Wait 5-10 minutes for Discord to sync
+- Try kicking and re-inviting the bot
 
-### Verification failed error
-- Ensure your PUBLIC_KEY is correct in environment variables
-- Check that the endpoint URL matches your Vercel deployment
+### Dashboard not accessible
+- Check `DASHBOARD_PORT` in `.env`
+- Make sure port is not in use
+- Check firewall settings
+
+### "Invalid Token" error
+- Get a new token from Discord Developer Portal
+- Make sure token is in `.env` file
+- No spaces or quotes around the token
+
+## 📈 Adding Custom Commands
+
+1. **Edit `src/index.js`** - Add command handler:
+```javascript
+case 'yourcommand':
+  await interaction.reply({
+    content: 'Your response here!'
+  });
+  break;
+```
+
+2. **Edit `src/register-commands.js`** - Register command:
+```javascript
+{
+  name: 'yourcommand',
+  description: 'Description of your command',
+}
+```
+
+3. **Re-register commands:**
+```bash
+npm run register
+```
+
+4. **Restart bot:**
+```bash
+npm start
+```
+
+## 🔐 Security
+
+- ⚠️ **NEVER** commit `.env` file to GitHub
+- ⚠️ Change default admin password
+- ⚠️ Use strong bot token (keep it secret)
+- ⚠️ Restrict dashboard access with firewall
+
+## 📚 Project Structure
+
+```
+CircuitDiscordBot/
+├── src/
+│   ├── index.js              # Main bot file
+│   ├── dashboard.js          # Web dashboard
+│   └── register-commands.js  # Command registration
+├── package.json              # Dependencies
+├── .env                      # Configuration (not committed)
+├── .gitignore               # Git ignore rules
+└── README.md                # This file
+```
+
+## 🤝 Contributing
+
+Feel free to:
+- Report bugs
+- Suggest features
+- Submit pull requests
 
 ## 📄 License
 
-MIT
+MIT License - Feel free to use and modify!
+
+## 🎉 Credits
+
+- Built with [discord.js](https://discord.js.org/)
+- Dashboard powered by Express
+- Hosted on Railway/Heroku/VPS
 
 ---
 
-Made with ⚡ by Circuit Bot
+**🌟 Your bot is now ONLINE and ready to serve! 🌟**
 
+For help, check the [DASHBOARD.md](DASHBOARD.md) file or open an issue on GitHub!
