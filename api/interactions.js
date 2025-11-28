@@ -13,6 +13,21 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Check if bot is enabled (from dashboard)
+  if (global.botEnabled && !global.botEnabled()) {
+    // Log the blocked interaction
+    if (global.logError) {
+      global.logError('Bot is disabled', 'Interaction blocked by dashboard');
+    }
+    return res.status(200).json({
+      type: 4,
+      data: {
+        content: '⏸️ Bot is currently disabled by the administrator. Please try again later.',
+        flags: 64 // Ephemeral message
+      }
+    });
+  }
+
   // Verify the request is from Discord
   const signature = req.headers['x-signature-ed25519'];
   const timestamp = req.headers['x-signature-timestamp'];
@@ -22,10 +37,24 @@ export default async function handler(req, res) {
 
   if (!isValidRequest) {
     console.error('Invalid request signature');
+    if (global.logError) {
+      global.logError('Invalid request signature', `Headers: ${JSON.stringify(req.headers)}`);
+    }
     return res.status(401).json({ error: 'Invalid request signature' });
   }
 
   const interaction = req.body;
+  
+  // Log the interaction
+  try {
+    if (global.logInteraction && interaction.type === 2) {
+      const userName = interaction.member?.user?.username || interaction.user?.username || 'Unknown';
+      const commandName = interaction.data?.name || 'unknown';
+      global.logInteraction('COMMAND', commandName, userName);
+    }
+  } catch (err) {
+    console.error('Error logging interaction:', err);
+  }
 
   // Handle Discord PING
   if (interaction.type === 1) {
@@ -159,6 +188,9 @@ export default async function handler(req, res) {
         });
 
       default:
+        if (global.logError) {
+          global.logError('Unknown command', `Command: ${name}`);
+        }
         return res.status(200).json({
           type: 4,
           data: {
@@ -169,6 +201,9 @@ export default async function handler(req, res) {
   }
 
   // Handle other interaction types (buttons, modals, etc.)
+  if (global.logError) {
+    global.logError('Unknown interaction type', `Type: ${interaction.type}`);
+  }
   return res.status(400).json({ error: 'Unknown interaction type' });
 }
 
