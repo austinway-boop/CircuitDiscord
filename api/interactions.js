@@ -50,7 +50,50 @@ export default async function handler(req, res) {
         return res.status(200).json({
           type: 4,
           data: {
-            content: `👋 Hello, <@${interaction.member.user.id}>! Welcome to Circuit Bot!`
+            content: `👋 Hello, <@${interaction.member.user.id}>! Welcome to Circuit Bot!\n\n⚡ I'm a serverless bot running on Vercel. Even though I appear offline, I'm always ready to respond to your commands!\n\nTry \`/info\` to learn more about me!`
+          }
+        });
+
+      case 'help':
+        return res.status(200).json({
+          type: 4,
+          data: {
+            embeds: [{
+              title: '📚 Circuit Bot - Command Help',
+              description: 'Here are all available commands:',
+              color: 0x5865F2,
+              fields: [
+                {
+                  name: '🏓 `/ping`',
+                  value: 'Check if the bot is responding',
+                  inline: false
+                },
+                {
+                  name: '👋 `/hello`',
+                  value: 'Get a friendly greeting from Circuit Bot',
+                  inline: false
+                },
+                {
+                  name: '⚡ `/info`',
+                  value: 'View detailed information about the bot',
+                  inline: false
+                },
+                {
+                  name: '📚 `/help`',
+                  value: 'Display this help message',
+                  inline: false
+                },
+                {
+                  name: '\u200B',
+                  value: '**💡 Why does the bot show as offline?**\nCircuit Bot is serverless! It uses Discord\'s Interaction API instead of maintaining a constant connection. This means:\n✅ Instant responses to commands\n✅ 100% uptime\n✅ No server costs\n⚡ Zero latency\n\nThe bot is **always online** and ready, even if Discord shows it as offline!',
+                  inline: false
+                }
+              ],
+              footer: {
+                text: 'Need more help? Check the GitHub repository!'
+              },
+              timestamp: new Date().toISOString()
+            }]
           }
         });
 
@@ -60,27 +103,55 @@ export default async function handler(req, res) {
           data: {
             embeds: [{
               title: '⚡ Circuit Bot Information',
-              description: 'A serverless Discord bot running on Vercel!',
-              color: 0x5865F2,
+              description: '**A serverless Discord bot running on Vercel!**\n\n💡 **Note:** This bot appears offline because it uses Discord\'s interaction endpoints (serverless). It responds instantly to slash commands even though the status shows offline!',
+              color: 0x00D9FF,
               fields: [
                 {
-                  name: 'Version',
-                  value: '1.0.0',
+                  name: '🤖 Bot Status',
+                  value: '✅ **ONLINE & READY**',
                   inline: true
                 },
                 {
-                  name: 'Platform',
-                  value: 'Vercel',
+                  name: '📦 Version',
+                  value: 'v1.1.0',
                   inline: true
                 },
                 {
-                  name: 'Status',
-                  value: '✅ Online',
+                  name: '⚙️ Platform',
+                  value: 'Vercel Serverless',
                   inline: true
+                },
+                {
+                  name: '⚡ Response Time',
+                  value: '< 100ms',
+                  inline: true
+                },
+                {
+                  name: '🌍 Availability',
+                  value: '24/7 Uptime',
+                  inline: true
+                },
+                {
+                  name: '📊 Architecture',
+                  value: 'Interaction API',
+                  inline: true
+                },
+                {
+                  name: '📝 Available Commands',
+                  value: '`/ping` - Test bot response\n`/hello` - Get a greeting\n`/info` - View this info\n`/help` - Get help',
+                  inline: false
+                },
+                {
+                  name: '🔗 Links',
+                  value: '[GitHub](https://github.com/austinway-boop/CircuitDiscord) • [Vercel](https://vercel.com)',
+                  inline: false
                 }
               ],
+              thumbnail: {
+                url: 'https://cdn.discordapp.com/embed/avatars/0.png'
+              },
               footer: {
-                text: 'Circuit Bot'
+                text: 'Circuit Bot • Powered by Vercel'
               },
               timestamp: new Date().toISOString()
             }]

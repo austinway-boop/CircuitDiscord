@@ -19,7 +19,12 @@ const commands = [
   },
   {
     name: 'info',
-    description: 'Get information about Circuit Bot',
+    description: 'Get detailed information about Circuit Bot',
+    type: 1
+  },
+  {
+    name: 'help',
+    description: 'Display help and available commands',
     type: 1
   }
 ];
