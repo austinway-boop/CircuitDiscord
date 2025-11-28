@@ -3,9 +3,6 @@
   "version": "2.1.0",
   "description": "Circuit Discord Bot - Serverless on Vercel",
   "main": "api/interactions.js",
-  "engines": {
-    "node": "20.x"
-  },
   "scripts": {
     "register": "node scripts/register-commands.js"
   },
