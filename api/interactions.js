@@ -1,8 +1,8 @@
-import { verifyKey } from 'discord-interactions';
+const { verifyKey } = require('discord-interactions');
 
 const PUBLIC_KEY = process.env.DISCORD_PUBLIC_KEY;
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Only accept POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
